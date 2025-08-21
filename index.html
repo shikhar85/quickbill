@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item List Form</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="https://unpkg.com/alpinejs" defer></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Quick Bill</h1>
+        <form @submit.prevent="submitForm" x-data="billDetails">
+            <div class="grid">
+                <div>
+                    <label for="tokenNo">Token No:</label>
+                    <input type="text" id="tokenNo" x-model="tokenNo" required>
+                </div>
+                <div>
+                    <label for="group">Group Size:</label>
+                    <select id="group" x-model="group">
+                        <option>solo</option>
+                        <option>couple</option>
+                        <option>small</option>
+                        <option>large</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="inTime">In Time:</label>
+                    <input type="time" id="inTime" x-model="inTime" required>
+                </div>
+                <div>
+                    <label for="outTime">Out Time:</label>
+                    <input type="time" id="outTime" x-model="outTime" required>
+                </div>
+            </div>
+            <div class=grid>
+                <p>Facility Usage: <span x-text="timeDifference()"></span> minutes</p>
+                <p>Applicable Charges: <span x-text="`${facilityCharges()}-${group}`"></span></p>
+            </div>
+
+            <template x-for="(item, index) in items" :key="index">
+                <button class="outline"  @click="addItem(item)" x-text="item.name"></button>
+            </template>
+
+            <div class="overflow-auto">
+                <table class="striped">
+                  <thead>
+                    <tr>
+                      <th scope="col">Item</th>
+                      <th scope="col">Qty</th>
+                      <th scope="col">Price</th>
+                      <th scope="col">Subtotal</th>
+                      <th scope="col">X</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-for="(item, index) in billItems" :key="index">
+                        <tr>
+                            <td x-text="item.name"></td>
+                            <td x-text="item.qty"></td>
+                            <td x-text="item.price"></td>
+                            <td x-text="item.price*item.qty"></td>
+                            <td @click="removeItem(index)">X</td>
+                        </tr>
+                    </template>
+                  </tbody>
+                </table>
+            </div>
+
+            <p style="text-align: right;">Total: ₹<span x-text="totalCost()"></span></p>
+
+        </form>
+    </div>
+
+    <script>
+        function billDetails() {
+            return {
+                tokenNo: '',
+                inTime: '',
+                outTime: '',
+                group: 'solo',
+                billItems: [],
+                items: [],
+
+                init() {
+                    fetch('items.json')
+                        .then(response => response.json())
+                        .then(data => {
+                            this.items = data; // Load items from the JSON file
+                        })
+                        .catch(error => console.error('Error loading items:', error));
+                },
+
+                addItem(item) {
+                    const existingItem = this.billItems.find(billItem => billItem.name === item.name);
+                    if (existingItem) {
+                        existingItem.qty += 1; // Increment quantity if item already exists
+                    } else {
+                        this.billItems.push({ name: item.name, qty: 1, price: item.price }); // Add new item
+                    }
+                },
+
+                removeItem(index) {
+                    this.billItems.splice(index, 1);
+                },
+
+                timeDifference() {
+                    if (this.inTime && this.outTime) {
+                        const inTime = new Date(`1970-01-01T${this.inTime}:00`);
+                        const outTime = new Date(`1970-01-01T${this.outTime}:00`);
+                        return Math.max((outTime - inTime) / 60000, 0); // Return difference in minutes, or 0 if negative
+                    }
+                    return 0; // Return 0 if either time is not set
+                },
+
+                facilityCharges(){
+                    return Math.ceil((this.timeDifference()-10) / 30) * 30;
+                },
+
+                totalCost() {
+                    return this.billItems.reduce((total, item) => total + (item.price * item.qty), 0);
+                },
+
+            }
+        }
+    </script>
+</body>
+</html>
