@@ -1,0 +1,8 @@
+[
+    { "name": "Espresso", "qty": 1, "price": 100.00 },
+    { "name": "Cappuccino", "qty": 1, "price": 150.00 },
+    { "name": "Latte", "qty": 1, "price": 120.00 },
+    { "name": "Mocha", "qty": 1, "price": 180.00 },
+    { "name": "Croissant", "qty": 1, "price": 80.00 },
+    { "name": "Cheese Sandwich", "qty": 1, "price": 120.00 }
+]
