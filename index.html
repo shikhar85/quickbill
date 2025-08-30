@@ -20,10 +20,9 @@
                 <div>
                     <label for="group">Group Size:</label>
                     <select id="group" x-model="group">
-                        <option>solo</option>
-                        <option>couple</option>
-                        <option>small</option>
-                        <option>large</option>
+                        <template x-for="groupName in Object.keys(groupCharges)">
+                            <option x-text="groupName"></option>
+                        </template>
                     </select>
                 </div>
                 <div>
@@ -34,10 +33,6 @@
                     <label for="outTime">Out Time:</label>
                     <input type="time" id="outTime" x-model="outTime" required>
                 </div>
-            </div>
-            <div class=grid>
-                <p>Facility Usage: <span x-text="timeDifference()"></span> minutes</p>
-                <p>Applicable Charges: <span x-text="`${facilityCharges()}-${group}`"></span></p>
             </div>
 
             <template x-for="(item, index) in items" :key="index">
@@ -69,7 +64,12 @@
                 </table>
             </div>
 
-            <p style="text-align: right;">Total: ₹<span x-text="totalCost()"></span></p>
+            <p style="text-align: right;">Total Purchases: ₹<span x-text="totalCost()"></span></p>
+            <div class=grid>
+                <p>Facility Usage: <span x-text="timeDifference()"></span> minutes</p>
+                <p>Applicable Charges: <span x-text="`${facilityCharges()}`"></span></p>
+            </div>
+            <p style="text-align: right;">Grand Total: ₹<span x-text="totalCost()+facilityCharges()"></span></p>
 
         </form>
     </div>
@@ -80,6 +80,7 @@
                 tokenNo: '',
                 inTime: '',
                 outTime: '',
+                groupCharges: {solo: 15, small: 20, large: 30},
                 group: 'solo',
                 billItems: [],
                 items: [],
@@ -116,7 +117,8 @@
                 },
 
                 facilityCharges(){
-                    return Math.ceil((this.timeDifference()-10) / 30) * 30;
+                    // calculate charges for 15 minute intervals based on the group size
+                    return Math.ceil((this.timeDifference()-8) / 15) * this.groupCharges[this.group];
                 },
 
                 totalCost() {
